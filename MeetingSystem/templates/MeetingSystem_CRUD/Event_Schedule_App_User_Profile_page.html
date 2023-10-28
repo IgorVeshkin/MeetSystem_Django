@@ -1,0 +1,86 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Аккаунт пользователя {% endblock title %}
+
+{% block info-and-setting %} {% endblock info-and-setting %}
+
+{% block main-content %}
+
+{% load MeetingSystem_CRUD_tags %}
+
+<!--		{% if request.user == Current_User %}-->
+<!--		<div class="mt-5">-->
+<!--			<div class="form-check mx-2 pt-3">-->
+<!--				<input type="checkbox" class="form-check-input" value="" id="AllowAccessToAccount">-->
+<!--				<label class="form-check-label" for="AllowAccessToAccount">Разрешить отображание учетную запись в общем списке</label>-->
+<!--			</div>-->
+<!--			<div class="form-check mx-2 mt-1">-->
+<!--				<input type="checkbox" class="form-check-input" value="" id="AllowAccessToSchedule">-->
+<!--				<label class="form-check-label" for="AllowAccessToSchedule">Открыть доступ к просмотру расписания для других пользователя</label>-->
+<!--			</div>-->
+<!--		</div>-->
+
+<!--		{% endif %}-->
+
+		{% if Events_of_the_user %}
+
+		{% if request.user == Current_User %}
+        	<div class="container w-100 main-container mt-5"> <h2 class="text-center mt-4">Мое расписание</h2> </div>
+		{% else %}
+			<div class="container w-100 main-container mt-5"> <h2 class="text-center mt-4">Расписание пользователя {{ Current_User.username }}</h2> </div>
+		{% endif %}
+
+		{% endif %}
+
+    <div class="container w-100 main-container">
+
+		{% regroup Events_of_the_user by event_date as grouped_user_events %}
+
+<!--		{{ grouped_user_events }}-->
+
+		{% if grouped_user_events %}
+
+			{% for event in grouped_user_events %}
+
+				<div class="weekday-table-container-for-profile mt-4">
+
+
+					<table class="table fw-normal table-text-align">
+					  <thead>
+						<tr class="table-success"> <!-- table-header -->
+						  <th scope="col" colspan="4">{{ event.grouper| date:"l" }}, {{ event.grouper }}</th>
+						</tr>
+
+					  </thead>
+					  <tbody>
+						{% for current_event in event.list %}
+						<tr>
+						  <td class="time-cell">{{ current_event.event_start_time }}-{{ current_event.event_end_time }}</td>
+<!--						  <td class="event-cell">{{ current_event.event_title }}</td>-->
+						  <td class="event-cell">{% getEventDescriptionPopover event_title=current_event.event_title event_description=current_event.event_description %} </td>
+
+						  {% if request.user == Current_User %}
+							  <td class="add-event-to-profile-cell">
+								  <a class="bi bi-x-square text-black" href="{% url 'remove-event-from-profile' event_pk=current_event.pk %}"></a>
+							  </td>
+						  {% endif %}
+						</tr>
+						{% endfor %}
+
+
+					  </tbody>
+					</table>
+
+
+				</div>
+
+			{% endfor %}
+
+		{% else %}
+			<div class="container w-100 main-container mt-5"> <h3 class="text-center mt-5">Пользователь не подписан ни на одно событие</h3> </div>
+		{% endif %}
+
+    </div>
+
+
+{% endblock main-content %}

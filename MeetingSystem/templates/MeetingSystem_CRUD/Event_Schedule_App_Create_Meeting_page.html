@@ -1,0 +1,73 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Форма создания мероприятия {% endblock title %}
+
+{% block main-content %}
+	<div class="form-container">
+	  <div class="mt-5 pb-3 w-100 h-100 d-flex align-items-center justify-content-center">
+			<form method="GET" class="meeting-form meeting-form-border p-2">
+				<label for="form-meeting-title-input" class="form-label fs-5 text-center">Форма создания нового мероприятия</label>
+				<input type="text" placeholder="Название мероприятия" id="form-meeting-title-input" name="meeting-title" class="form-control mt-2 mb-2" required="required">
+
+				<input type="text" placeholder="Название компании" id="form-company-name-input" name="company-name" class="form-control mt-4 mb-2" required="required">
+
+				<label for="Meeting_Description_input" class="form-label mt-2">Описание мероприятия</label>
+				<textarea class="form-control meeting_description_textarea" id="Meeting_Description_input" name="meeting-description" rows="3" required="required"></textarea>
+
+				<label for="form-meeting-start-date-input" class="form-label mt-3">Дата начала мероприятия</label>
+				<input type="date" min="2023-06-20" onchange="change_end_limit_for_meeting_date();" id="form-meeting-start-date-input" name="meeting-start-date" class="form-control mb-2" required="required">
+
+				<label for="form-meeting-end-date-input" class="form-label mt-3">Дата окончания мероприятия</label>
+				<input type="date" id="form-meeting-end-date-input" name="meeting-end-date" class="form-control mb-2" required="required">
+
+				<input type="submit" name="meeting-creation-form-submit-btn" class="btn btn-primary mt-1 w-100" value="Создать мероприятие">
+			</form>
+		</div>
+	</div>
+
+{% endblock main-content %}
+
+{% block my_javascript_page_code %}
+
+<script type="text/javascript">
+
+  const today_date = new Date();
+
+  var today_date_short = today_date.toISOString().slice(0,10);
+
+  var meeting_start_date_input = document.getElementById('form-meeting-start-date-input');
+  var meeting_end_date_input = document.getElementById('form-meeting-end-date-input');
+
+  meeting_start_date_input.value = today_date_short;
+  meeting_start_date_input.min = today_date_short;
+  meeting_end_date_input.min = today_date_short;
+
+  today_date.setDate(today_date.getDate() + 7);
+
+  meeting_end_date_input.value = today_date.toISOString().slice(0,10);
+
+  meeting_end_date_input.max = today_date.toISOString().slice(0,10);
+
+  function change_end_limit_for_meeting_date() {
+
+	var selected_start_date = document.getElementById('form-meeting-start-date-input').value;
+
+	var date = new Date(selected_start_date);
+
+	date.setDate(date.getDate() + 7);
+
+	meeting_end_date_input = document.getElementById('form-meeting-end-date-input');
+
+
+	meeting_end_date_input.min = selected_start_date;
+	meeting_end_date_input.max = date.toISOString().slice(0,10);
+	meeting_end_date_input.value = date.toISOString().slice(0,10);
+
+
+}
+
+
+
+</script>
+
+{% endblock my_javascript_page_code %}

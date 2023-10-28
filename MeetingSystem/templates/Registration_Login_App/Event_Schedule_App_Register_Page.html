@@ -1,0 +1,27 @@
+{% extends 'Registration_Login_App/Event_Schedule_App_Registration_Login_Pages_base.html' %}
+
+{% block title %} Система менеждмента мероприятий - Регистрация в системе {% endblock title %}
+
+{% block form-area %}
+
+  <form method="POST" class="login-form login-form-border p-2 mt-5">
+
+    {% csrf_token %}
+
+    <label class="form-label fs-5 text-center mb-2">Регистрация нового пользователя</label> <br>
+
+
+    {% for register_form_field in form %}
+
+            {{ register_form_field.errors }}
+            {{ register_form_field.label }}
+            {{ register_form_field }}
+
+    {% endfor %}
+
+<!--    {{ form.as_div }}-->
+
+    <input type="submit" name="" class="btn btn-primary w-100 mt-2" value="Зарегистрировать аккаунт">
+  </form>
+
+{% endblock form-area %}

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html>
+<head>
+	<title>{% block title %} Система менеждмента мероприятий {% endblock title %}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/Events_Schedule_App_base_template.css' %}">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+<!--	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css" rel="stylesheet">-->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'main-page' %}">Meet System</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+<!--        <li class="nav-item">-->
+<!--          <a class="nav-link active" aria-current="page" href="#">Мероприятия</a>-->
+<!--        </li>-->
+	  	{% if request.user.profile.role == "Admin" %}
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'create_meeting' %}">Создать мероприятие</a>
+        </li>
+	  	<li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'create_event' %}">Создать событие</a>
+        </li>
+	    {% endif %}
+
+	    {% if request.user.is_authenticated %}
+	    <li class="nav-item">
+          <a class="nav-link active" href="{% url 'show-users-list' %}">Список пользователей</a>
+        </li>
+	    {% endif %}
+<!--	  	<li class="nav-item">-->
+<!--          <a class="nav-link active" aria-current="page" href="{% url 'testing_page' %}">Тестовая страница</a>-->
+<!--        </li>-->
+        <li class="nav-item">
+          <a class="nav-link active" href="{% url 'about-site' %}">О системе</a>
+        </li>
+		  {% if request.user.is_authenticated %}
+        <li class="hidden-nav-item-user-profile nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+			  {{ request.user.username }} | {{ request.user.profile.role }}
+          </a>
+
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'show-profile' user_pk=request.user.pk %}">Перейти в профиль</a></li>
+		    <li><a class="dropdown-item" href="{% url 'profile-settings' user_pk=request.user.pk %}">Настройки профиля</a></li>
+		    <li><a class="dropdown-item" href="{% url 'chats-main-page' %}">Мои переписки</a></li>
+            <li><a class="dropdown-item" href="{% url 'logout-page' %}">Выйти из аккаунта</a></li>
+          </ul>
+        </li>
+		  {% else %}
+			<div class="hidden-nav-item-user-profile nav-item">
+				<a class="nav-link text-decoration-none text-dark" href="{% url 'login-page' %}">Войти в учетную запись</a>
+          	</div>
+
+		  	<div class="hidden-nav-item-user-profile nav-item">
+				<a class="nav-link text-decoration-none text-dark" href="{% url 'register-page' %}">Зарегистрироваться</a>
+			</div>
+		  {% endif %}
+      </ul>
+
+  </div>
+
+  <div class="d-flex user-header-info">
+  	
+  	<div class="nav-item dropdown">
+		{% if request.user.is_authenticated %}
+          <a class="nav-link dropdown-toggle mr-5" href="#" id="navbarDropdownMenuLink1" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+			  {{ request.user.username }} | {{ request.user.profile.role }}
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink1">
+            <li><a class="dropdown-item" href="{% url 'show-profile' user_pk=request.user.pk %}">Перейти в профиль</a></li>
+            <li><a class="dropdown-item" href="{% url 'profile-settings' user_pk=request.user.pk %}">Настройки профиля</a></li>
+		    <li><a class="dropdown-item" href="{% url 'chats-main-page' %}">Мои переписки</a></li>
+		    <li><a class="dropdown-item" href="{% url 'logout-page' %}">Выйти из аккаунта</a></li>
+          </ul>
+		{% else %}
+			<div class="">
+				<a class="text-decoration-none text-dark" href="{% url 'login-page' %}">Login</a> | <a class="text-decoration-none text-dark" href="{% url 'register-page' %}"> Register </a>
+          </div>
+		{% endif %}
+        </div>
+
+  </div>
+  </div>
+
+</nav>
+
+	{% block main-content %}
+
+	<div class="container w-100 main-container mt-5"> <h2 class="text-center mt-4">Название мероприятия</h2> </div>
+
+	<div class="container w-100 main-container">
+
+		<div class="weekday-table-container mt-4">
+
+			<table class="table fw-normal table-text-align">
+			  <thead>
+			    <tr class="table-success"> <!-- table-header -->
+			      <th scope="col" colspan="4">Понедельник, 28 июня</th>
+			    </tr>
+
+			  </thead>
+			  <tbody>
+			    <tr>
+
+			      <td class="time-cell">9:00-10:00</td>
+			      <td class="event-cell">Сессия "Будущее Российского IT-сектора"</td>
+
+			    </tr>
+			    <tr>
+			      <td class="time-cell">10:00-11:00</td>
+			      <td class="event-cell">Сессия "Российское программное обеспечение"</td>
+
+			    </tr>
+
+			    <tr>
+			      <td class="time-cell">11:00-11:30</td>
+			      <td class="event-cell">Кофе-Брейк</td>
+
+			    </tr>
+			   
+			  </tbody>
+			</table>
+
+		</div>
+
+
+		<div class="weekday-table-container mt-4">
+
+			<table class="table fw-normal table-text-align">
+			  <thead>
+			    <tr class="table-success"> <!-- table-header -->
+			      <th scope="col" colspan="4">Вторник, 29 июня</th>
+			    </tr>
+
+			  </thead>
+			  <tbody>
+			    <tr>
+
+			      <td class="time-cell">9:00-10:00</td>
+			      <td class="event-cell">Сессия "Вызовы 2023 года для IT-сектора"</td>
+
+			    </tr>
+			    <tr>
+			      <td class="time-cell">10:00-11:00</td>
+			      <td class="event-cell">Сессия "Особенности миграции на Российское программное обееспечение"</td>
+
+			    </tr>
+
+			    <tr>
+			      <td class="time-cell">11:00-11:30</td>
+			      <td class="event-cell">Кофе-Брейк</td>
+
+			    </tr>
+
+			    <tr>
+			      <td class="time-cell">12:00-14:30</td>
+			      <td class="event-cell">Закрытое заседание</td>
+
+			    </tr>
+			   
+			  </tbody>
+			</table>
+
+		</div>
+
+
+	</div>
+
+	<div class="mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+		<form method="GET" class="meeting-form meeting-form-border p-2">
+			<label for="form-meeting-title-input" class="form-label fs-5 text-center">Форма создания нового мероприятия</label>
+			<input type="text" placeholder="Название мероприятия" id="form-meeting-title-input" name="meeting-title" class="form-control mt-2 mb-2" required="required">
+
+			<input type="text" placeholder="Название компании" id="form-company-name-input" name="company-name" class="form-control mt-4 mb-2" required="required">
+
+			<label for="Meeting_Description_input" class="form-label mt-2">Описание мероприятия</label>
+			<textarea class="form-control meeting_description_textarea" id="Meeting_Description_input" rows="3"></textarea>
+
+			<label for="form-meeting-start-date-input" class="form-label mt-3">Дата начала мероприятия</label>
+			<input type="date" min="2023-06-20" onchange="change_end_limit_for_meeting_datetime();" id="form-meeting-start-date-input" name="meeting-start-date" class="form-control mb-2" required="required">
+
+			<label for="form-meeting-end-date-input" class="form-label mt-3">Дата окончания мероприятия</label>
+			<input type="date" id="form-meeting-end-date-input" name="meeting-end-date" class="form-control mb-2" required="required">
+
+		<!-- 	<label for="form-meeting-end-date-input" class="form-label mt-3">Время окончания мероприятия</label>
+			<input type="date" id="form-meeting-end-date-input" name="meeting-end-date" class="form-control">
+
+			<label for="form-meeting-end-date-input" class="form-label mt-3">Дата окончания мероприятия</label>
+			<input type="date" id="form-meeting-end-date-input" name="meeting-end-date" class="form-control"> -->
+			<input type="submit" name="meeting-creation-form-submit-btn" class="btn btn-primary mt-1 w-100" value="Создать мероприятие">
+		</form>
+	</div>
+
+
+	<div class="mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+		<form method="GET" class="meeting-event-form meeting-event-form-border p-2">
+			<label for="form-meeting-event-title-input" class="form-label fs-5 text-center">Форма создания нового события</label>
+			<input type="text" placeholder="Название события" id="form-meeting-event-title-input" name="meeting-event-title" class="form-control mt-2 mb-2" required="required">
+
+			<label for="Event_Description_input" class="form-label mt-2">Описание события</label>
+			<textarea class="form-control event_description_textarea" id="Event_Description_input" rows="3" required="required"></textarea>
+
+			<label for="form-meeting-select" class="form-label mt-2">Мероприятие</label>
+			<select name="dog-names" id="form-meeting-select" class="form-control mb-2">
+		        <option value="Мероприятие 1">Мероприятие 1</option> 
+		        <option value="Мероприятие 2">Мероприятие 2</option> 
+		        <option value="Мероприятие 3">Мероприятие 3</option> 
+		        <option value="Мероприятие 4">Мероприятие 4</option> 
+    		</select>
+
+    		<label for="form-meeting-event-end-date-input" class="form-label mt-2">Дата события</label>
+			<input type="date" value="" id="form-meeting-event-end-date-input" name="form-meeting-event-end-date-input" class="form-control mb-2" required="required"> <!-- min="2023-06-20" -->
+
+
+			<label for="form-meeting-event-start-time-input" class="form-label mt-2">Время начала события</label>
+			<input type="time" onchange="change_end_limit_for_meeting_event_time();" id="form-meeting-event-start-time-input" name="form-meeting-event-start-date-input" class="form-control mb-2" required="required">
+
+			<label for="form-meeting-event-end-time-input" class="form-label mt-2">Время окончания события</label>
+			<input type="time" id="form-meeting-event-end-time-input" name="form-meeting-event-end-date-input" class="form-control mb-2" required="required">
+
+		
+			<input type="submit" name="meeting-creation-form-submit-btn" class="btn btn-primary mt-1 w-100" value="Создать событие">
+		</form>
+	</div>
+
+	<div class="container w-100 main-container">
+		<div class="meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+			<div class="meeting-content-box list-group">
+			  <a href="#" class="list-group-item list-group-item-action" aria-current="true">
+				<div class="d-flex w-100 justify-content-between">
+				  <h5 class="mb-1">Название мероприятия</h5>
+				  <small class="firm-title mt-1">ООО "Фирма"</small>
+				</div>
+				<p class="mb-1 text-break meeting-description">Описание мероприятия</p>
+				<small>01.01.2023-08.01.2023</small>
+			  </a>
+			</div>
+		</div>
+
+		<div class="meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+			<div class="meeting-content-box list-group">
+			  <a href="#" class="list-group-item list-group-item-action" aria-current="true">
+				<div class="d-flex w-100 justify-content-between">
+				  <h5 class="mb-1">Название мероприятия</h5>
+				  <small class="firm-title mt-1">ООО "Фирма"</small>
+				</div>
+				<p class="mb-1 text-break meeting-description">Описание мероприятия</p>
+				<small>01.01.2023-08.01.2023</small>
+			  </a>
+			</div>
+		</div>
+
+		<div class="meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+			<div class="meeting-content-box list-group">
+			  <a href="#" class="list-group-item list-group-item-action" aria-current="true">
+				<div class="d-flex w-100 justify-content-between">
+				  <h5 class="mb-1">Название мероприятия</h5>
+				  <small class="firm-title mt-1">ООО "Фирма"</small>
+				</div>
+				<p class="mb-1 text-break meeting-description">Описание мероприятия</p>
+				<small>01.01.2023-08.01.2023</small>
+			  </a>
+			</div>
+		</div>
+
+		<div class="meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+			<div class="meeting-content-box list-group">
+			  <a href="#" class="list-group-item list-group-item-action" aria-current="true">
+				<div class="d-flex w-100 justify-content-between">
+				  <h5 class="mb-1">Название мероприятия</h5>
+				  <small class="firm-title mt-1">ООО "Фирма"</small>
+				</div>
+				<p class="mb-1 text-break meeting-description">Описание мероприятия</p>
+				<small>01.01.2023-08.01.2023</small>
+			  </a>
+			</div>
+		</div>
+
+
+
+
+	</div>
+
+	{% endblock main-content %}
+
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+
+
+{% block my_javascript_page_code %}
+
+<script type="text/javascript">
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
+
+
+	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  		return new bootstrap.Popover(popoverTriggerEl)
+	})
+
+
+
+
+	const today_date = new Date();
+
+	var today_date_short = today_date.toISOString().slice(0,10);
+
+	// let day = today_date.getDate();
+	// let month = today_date.getMonth();
+	// let year = today_date.getFullYear();
+
+	// alert(today_date.toISOString().slice(0,10));
+
+	var meeting_start_date_input = document.getElementById('form-meeting-start-date-input');
+	var meeting_end_date_input = document.getElementById('form-meeting-end-date-input');
+
+	meeting_start_date_input.value = today_date_short;
+	meeting_start_date_input.min = today_date_short;
+	meeting_end_date_input.min = today_date_short;
+
+	today_date.setDate(today_date.getDate() + 7);
+
+	meeting_end_date_input.value = today_date.toISOString().slice(0,10);
+
+	meeting_end_date_input.max = today_date.toISOString().slice(0,10);
+	
+
+function change_end_limit_for_meeting_datetime() {
+
+	var selected_start_date = document.getElementById('form-meeting-start-date-input').value;
+
+	var date = new Date(selected_start_date);
+
+	date.setDate(date.getDate() + 7);
+
+	meeting_end_date_input = document.getElementById('form-meeting-end-date-input');
+
+	
+	meeting_end_date_input.min = selected_start_date;
+	meeting_end_date_input.max = date.toISOString().slice(0,10);
+	meeting_end_date_input.value = date.toISOString().slice(0,10);
+
+
+}
+
+function change_end_limit_for_meeting_event_time() {
+
+	var start_time_input = document.getElementById('form-meeting-event-start-time-input');
+
+	// var selected_start_time = start_time_input.value;
+
+	var end_time_input = document.getElementById('form-meeting-event-end-time-input');
+
+	// alert('works');
+
+	end_time_input.min = start_time_input.value;
+
+	// alert(end_time_input.min, start_time_input.value);
+
+	// document.getElementById('form-meeting-event-end-date-input').value = selected_start_date;
+
+	// var date = new Date(selected_start_time);
+
+	// // date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+	// // date.setDate(date.getDate() + 7);
+	// end_time_input.value = date.toISOString().slice(0,5);
+}
+
+</script>
+
+{% endblock my_javascript_page_code %}
+
+</body>
+</html>

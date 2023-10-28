@@ -1,0 +1,227 @@
+* {
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+}
+
+/*.table-header {
+	text-align: center;
+}*/
+
+.main-container {
+	/*width: 100%;*/
+	/*background-color: red;*/
+	/*min-height: 100vh;*/
+	display: flex;
+	flex-wrap: wrap;
+    justify-content: space-around;
+	/* justify-content: space-around; */
+	/* background-color: green; */
+
+}
+
+.table-text-align {
+	text-align: center;
+
+
+}
+
+.weekday-table-container {
+    /* min-width: 300px; */
+    max-width: 500px;
+	/* background-color: red; */
+
+
+
+}
+
+.weekday-table-container-for-profile {
+	max-width: 500px;
+
+
+}
+
+.weekday-table-container-for-profile table > thead {
+	border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.weekday-table-container table {
+    /* min-width: inherit; */
+
+}
+
+.weekday-table-container table > thead {
+	border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+
+.time-cell {
+	border-right: 1px solid rgba(0, 0, 0, 0.2);
+	border-left: 1px solid rgba(0, 0, 0, 0.2);
+	line-height: 16px;
+	vertical-align: middle;
+	min-width: 100px;
+
+}
+
+.event-cell {
+	min-width: 300px;
+	vertical-align: middle;
+	line-height: normal;
+	border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.event-cell-for-form {
+	min-width: 250px;
+	vertical-align: middle;
+	line-height: normal;
+	border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.add-event-to-profile-cell {
+    min-width: 50px;
+    vertical-align: middle;
+    border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.subscription-number-cell {
+    min-width: 50px;
+    vertical-align: middle;
+    border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+
+
+.meeting-form {
+	width: 400px;
+}
+
+.meeting-event-form {
+	width: 400px;
+}
+
+.meeting-form-border, .meeting-event-form-border {
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 6px;
+
+}
+
+.meeting-form-border > label, input {
+	/*padding: 0.5em;*/
+}
+
+.user-header-info {
+	/*position: relative;*/
+}
+
+.hidden-nav-item-user-profile {
+	display: none;
+}
+
+/* Create Meeting Page */
+
+.form-container {
+   height: 90vh;
+}
+
+.meeting_description_textarea {
+    max-height: 140px;
+}
+
+.event_description_textarea {
+    max-height: 100px;
+}
+
+/* End of Create Meeting Page */
+
+/* Meeting Content Box */
+
+.meeting-full-container {
+	max-width: 550px;
+	/* background-color: red; */
+
+}
+
+.meeting-content-box {
+    min-width: 450px;
+}
+
+.meeting-title-box {
+    min-width: 150px;
+}
+
+.firm-title {
+    /* max-width: 200px; */
+    margin-top: 1em;
+
+}
+
+.meeting-description {
+    /* min-width: 250px; */
+    max-width: 400px;
+}
+
+/* End of Meeting Content Box*/
+
+@media (max-width: 991px) {
+
+.weekday-table-container {
+	max-width: 500px;
+
+
+
+}
+
+.weekday-table-container-for-profile {
+	max-width: 500px;
+
+}
+
+
+
+.user-header-info {
+	display: none;
+	position: absolute;
+	/*visibility: hidden;*/
+}
+
+.user-header-info > div {
+	display: none;
+}
+
+.hidden-nav-item-user-profile {
+	display: flex;
+}
+
+}
+
+.user-search-id-input-min-width {
+    max-width: 70px;
+}
+
+.user-search-id-input-min-width::-webkit-input-placeholder {
+   text-align: center;
+}
+
+.user-search-id-input-min-width.form-control {
+    // text-indent: 20px;
+    text-align: center;
+}
+
+.user-search-nickname-input-min-width {
+    max-width: 200px;
+}
+
+.user-search-role-select {
+    max-width: 80px;
+}
+
+.profile-setting-form {
+    width: 500px;
+}
+
+.profile-setting-form-border {
+
+    border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 6px;
+}

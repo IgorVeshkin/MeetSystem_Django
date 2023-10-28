@@ -1,0 +1,31 @@
+* {
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+}
+
+.form-container {
+   height: 90vh;
+}
+
+.login-form {
+	width: 400px;
+}
+
+.registration-form {
+	width: 400px;
+}
+
+.login-form-border, .registration-form-border {
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 6px;
+
+}
+
+.msg-box {
+    margin-left: 0px;
+}
+
+.msg-exit-btn {
+    margin-left: 20px;
+}

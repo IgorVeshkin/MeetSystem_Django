@@ -1,0 +1,124 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Мои переписки {% endblock title %}
+
+{% block main-content %}
+
+<style>
+    tr {
+        height: 50px;
+    }
+</style>
+
+{% load Chat_System_tags %}
+
+<div class="w-50 container">
+    <div class="mt-5 pb-3 w-100 h-100 d-flex align-items-center justify-content-center">
+        <table style="min-width: 475px;" class="text-center mt-2 table table-light table-hover align-middle">
+            <thead>
+                <tr>
+                    <th class="table-success" colspan="4" scope="col"><h2>Мои переписки</h2></th>
+<!--                    <th scope="col">Course</th>-->
+<!--                    <th scope="col">Price</th>-->
+                </tr>
+            </thead>
+            <tbody>
+                {% for current_chat in user_chats %}
+                {% getlast_message current_chat_room=current_chat currently_logged_user_pk=request.user as message_data %}
+                <tr>
+<!--                    <th scope="row"></th>-->
+                    <td class="">{% get_participant_name current_chat_room=current_chat logged_user_pk=request.user.pk %}</td>
+                    <td class="text-start">{{ message_data.message|truncatechars:50 }}</td>
+                    {% if message_data.datetime_empty %}
+                    <td class="text-end">{{ message_data.datetime }}</td>
+                    {% else %}
+                    <td class="text-end">{{ message_data.datetime|date:'d.m.Y H:i' }}</td>
+                    {% endif %}
+                    <td><a href="{% url 'show-chat' chat_pk=current_chat.pk%}" class="fs-5 text-dark"><i class="bi bi-chat-square-text"></i></a></td>
+                </tr>
+                {% endfor %}
+<!--                <tr>-->
+<!--&lt;!&ndash;                    <th scope="row">2</th>&ndash;&gt;-->
+<!--                    <td class="">IgorAdmin</td>-->
+<!--                    <td class="text-start">Давай завтра пересечемся в районе 2 часов?</td>-->
+<!--                    <td class="text-end">11.10.2023 16:21</td>-->
+<!--                    <td><a href="" class="fs-5 text-dark"><i class="bi bi-chat-square-text"></i></a></td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--&lt;!&ndash;                    <th scope="row">3</th>&ndash;&gt;-->
+<!--                    <td class="">User1</td>-->
+<!--                    <td class="text-start">Хорошо</td>-->
+<!--                    <td class="text-end">02.10.2023 10:01</td>-->
+<!--                    <td><a href="" class="fs-5 text-dark"><i class="bi bi-chat-square-text"></i></a></td>-->
+<!--                </tr>-->
+            </tbody>
+        </table>
+
+    </div>
+
+    <div id="chats-pagination" class="d-flex">
+
+    {% if user_chats.has_previous %}
+
+        {% if user_chats.previous_page_number != 1 %}
+
+        <a class="link-dark link-underline-opacity-25 mx-1" href="?{{ pagonation_link }}=1">1</a>
+        <a class="link-dark link-underline-opacity-25 mx-1" href="?{{ pagonation_link }}={{ user_chats.previous_page_number }}">{{ user_chats.previous_page_number }}</a>
+
+        {% else %}
+
+        <a class="link-dark link-underline-opacity-25 mx-1" href="?{{ pagonation_link }}={{ user_chats.previous_page_number }}">{{ user_chats.previous_page_number }}</a>
+
+        {% endif %}
+
+    {% endif %}
+
+    <div class="text-body mx-1"> < Страница {{ user_chats.number }} из {{ user_chats.paginator.num_pages }} ></div>
+
+
+    {% if user_chats.has_next %}
+
+        {% if user_chats.next_page_number != user_chats.paginator.num_pages %}
+
+        <a class="link-dark link-underline-opacity-25 mx-1" href="?{{ pagonation_link }}={{ user_chats.next_page_number }}">{{ user_chats.next_page_number }}</a>
+        <a class="link-dark link-underline-opacity-25 mx-1" href="?{{ pagonation_link }}={{ user_chats.paginator.num_pages }}">{{ user_chats.paginator.num_pages }}</a>
+
+        {% else %}
+
+        <a class="link-dark link-underline-opacity-25 mx-1" href="?{{ pagonation_link }}={{ user_chats.paginator.num_pages }}">{{ user_chats.paginator.num_pages }}</a>
+
+        {% endif %}
+
+    {% endif %}
+
+    </div>
+
+
+
+
+</div>
+
+<!--<div style="min-height: 93vh; max-height: 93vh;" class="pt-2 mt-5 d-flex align-items-stretch ">-->
+
+<!--&lt;!&ndash;    border-end border-dark &ndash;&gt;-->
+<!--<div style="width: 25%;" class="bg-success bg-opacity-25 overflow-auto">-->
+<!--    <h2 class="mt-1 pb-1 text-center border-bottom border-dark">Мои переписки</h2>-->
+
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 1</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 2</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 3</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 4</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 1</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 2</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 3</div>-->
+<!--    <div class="mt-2 pb-2 border-bottom border-dark">Chat Name 4</div>-->
+
+<!--</div>-->
+
+<!--<div style="width: 100%;" class="border bg-light">-->
+
+<!--</div>-->
+
+<!--</div>-->
+
+{% endblock main-content %}

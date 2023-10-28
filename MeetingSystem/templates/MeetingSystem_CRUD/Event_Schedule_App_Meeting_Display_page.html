@@ -1,0 +1,59 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Мероприятия {% endblock title %}
+
+{% block main-content %}
+
+    <div class="container w-100 main-container mt-5"> <h2 class="text-center mt-4">Текущие Мероприятия</h2> </div>
+
+    <div class="container w-100 main-container">
+
+		{% for current_meeting in Meetings %}
+
+		<div class="align-items-baseline meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">
+			<div class="meeting-content-box list-group">
+			  <a href="{% url 'show-meeting' meeting_pk=current_meeting.pk  %}" class="meeting-content-box list-group-item list-group-item-action" aria-current="true">
+				<div class="d-flex w-100 justify-content-between align-content-md-end">
+				  <h5 class="meeting-title-box mb-1">{{ current_meeting.meeting_title }}</h5>
+				</div>
+				<p class="mb-1 text-break meeting-description">{{ current_meeting.meeting_description|truncatechars:50 }}</p>
+				<small>{{ current_meeting.start_date|date:'d.m.Y' }}-{{ current_meeting.end_date|date:'d.m.Y' }}</small>
+				  <br>
+				  <small class="firm-title mt-5">{{ current_meeting.company_name }}</small>
+			  </a>
+			</div>
+		</div>
+
+		{% endfor %}
+
+
+<!--		<div class="meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">-->
+<!--			<div class="meeting-content-box list-group">-->
+<!--			  <a href="#" class="list-group-item list-group-item-action" aria-current="true">-->
+<!--				<div class="d-flex w-100 justify-content-between">-->
+<!--				  <h5 class="mb-1">Название мероприятия</h5>-->
+<!--				  <small class="firm-title mt-1">ООО "Фирма"</small>-->
+<!--				</div>-->
+<!--				<p class="mb-1 text-break meeting-description">Описание мероприятия</p>-->
+<!--				<small>01.01.2023-08.01.2023</small>-->
+<!--			  </a>-->
+<!--			</div>-->
+<!--		</div>-->
+
+<!--		<div class="meeting-full-container mt-5 pb-3 w-100 d-flex align-items-center justify-content-center">-->
+<!--			<div class="meeting-content-box list-group">-->
+<!--			  <a href="#" class="list-group-item list-group-item-action" aria-current="true">-->
+<!--				<div class="d-flex w-100 justify-content-between">-->
+<!--				  <h5 class="mb-1">Название мероприятия</h5>-->
+<!--				  <small class="firm-title mt-1">ООО "Фирма"</small>-->
+<!--				</div>-->
+<!--				<p class="mb-1 text-break meeting-description">Описание мероприятия</p>-->
+<!--				<small>01.01.2023-08.01.2023</small>-->
+<!--			  </a>-->
+<!--			</div>-->
+<!--		</div>-->
+
+
+    </div>
+
+{% endblock main-content %}

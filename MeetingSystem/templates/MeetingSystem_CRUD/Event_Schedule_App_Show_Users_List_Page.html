@@ -1,0 +1,553 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Список пользователей системы {% endblock title %}
+
+
+{% block main-content %}
+    <input type="hidden" id="current-logged-user-profile-role" value="{{ request.user.profile.role }}">
+    <input type="hidden" id="current-logged-user-id" value="{{ request.user.id }}">
+
+    <div class="container w-100 main-container mt-5"> <h2 class="text-center mt-4">Список пользователей системы</h2> </div>
+
+    <div class="container w-100 mt-2 mb-2 border p-2">
+<!--        main-container -->
+        <div class="d-flex flex-row">
+
+
+            <div>
+                <label for="search-id-field" class="mb-2">Поиск пользователей</label>
+
+                <div class="d-flex">
+
+<!--                    flex-wrap justify-content-between -->
+                    <input type="text" id="search-id-field" class="form-control user-search-id-input-min-width" placeholder="ID">
+                    <input type="text" id="search-nickname-field" class="form-control mx-2 user-search-nickname-input-min-width" placeholder="Поиск по nickname...">
+                    <select id="user-search-role-select" class="form-control user-search-role-select">
+<!--                        <option value="default">&#45;&#45;&#45;&#45;</option>-->
+                        <option value="All">All</option>
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                    <button id="search-user-button" class="btn btn-primary mx-2">Поиск</button>
+
+                </div>
+
+                {% if request.user.profile.role == "Admin" %}
+
+                <div class="mt-2">Записи, выделенные <strong class="text-warning">желтым цветов</strong>, скрыты в общем поиске (кроме Адиминистраторов)</div>
+                <div class="mt-2">Записи, выделенные <strong class="text-danger">красным цветов</strong>, являются забанеными аккаунтами и скрыты в общем поиске (кроме Адиминистраторов)</div>
+
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <div class="container w-100 main-container text-center">
+    <table class="table mt-2 w-100 align-middle">
+      <thead class="table-success">
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Nickname</th>
+          <th scope="col">Статус</th>
+          <th scope="col">Действия</th>
+        </tr>
+      </thead>
+      <tbody id="user-table-body">
+        {% for current_user in SystemUsers %}
+        {% if current_user.profile.is_banned %}
+           <tr class="table-danger">
+        {% else %}
+            {% if current_user.profile.is_hidden_on_search_page %}
+              <tr class="table-warning">
+            {% else %}
+              <tr>
+            {% endif %}
+        {% endif %}
+            <th scope="row">{{ current_user.pk }}</th>
+            <td>{{ current_user.username }}</td>
+            <td>{{ current_user.profile.role }}</td>
+            <td><a class="btn bi bi-calendar-event" href="{% url 'show-profile' user_pk=current_user.pk %}"></a>
+            {% if request.user.pk != current_user.pk %}
+                {% if current_user.profile.is_banned == False %}
+                    <a class="btn bi bi-chat-dots" href="{% url 'create-chat' user_pk=current_user.pk %}"></a>
+                {% else %}
+                    <a class="invisible btn bi bi-chat-dots" href="{% url 'create-chat' user_pk=current_user.pk %}"></a>
+                {% endif %}
+            {% else %}
+                <a class="invisible btn bi bi-chat-dots" href="{% url 'create-chat' user_pk=current_user.pk %}"></a>
+            {% endif %}
+            {% if request.user.profile.role == "Admin" %}
+                {% if current_user.profile.role == "User" %}
+
+                    {% if current_user.profile.is_banned %}
+                        <a class="btn bi bi-person-check-fill" href="{% url 'unban-user' user_pk=current_user.pk %}"></a>
+                    {% else %}
+                        <a class="btn bi bi-person-fill-slash" href="{% url 'ban-user' user_pk=current_user.pk %}"></a>
+                    {% endif %}
+                {% else %}
+                    <a class="invisible btn bi bi-person-fill-slash" href="{% url 'ban-user' user_pk=current_user.pk %}"></a>
+                {% endif %}
+
+            {% endif %}
+            </td>
+          </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+
+    <div id="user-search-loading-spinner" class="d-none spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+
+        <div id="no-user-found-message" class="visually-hidden">Пользователь не найден!</div>
+
+    </div>
+
+
+
+
+{% endblock main-content %}
+
+{% block my_javascript_page_code %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+async function send_user_search_ajax_id_request() {
+
+        $('#no-user-found-message').addClass('visually-hidden');
+
+        $("#user-table-body").html(``);
+
+        $('#user-search-loading-spinner').removeClass('d-none');
+
+		$.ajax({
+		  data: {"user_pk": $('#search-id-field').val() },
+		  dataType: 'json',
+		  url: "{% url 'get-user-by-id-in-search-page' %}",
+		  success: function(data1){
+
+
+		    // alert($('#current-logged-user-profile-role').val());
+
+            $('#user-search-loading-spinner').addClass('d-none');
+
+            if (data1.found_user.length != 0) {
+
+            $('#no-user-found-message').addClass('visually-hidden');
+
+
+            if (data1.found_user_profile[0].is_banned == true) {
+                $("#user-table-body").html(`
+                    <tr class="table-danger">
+                        <th scope="row">${data1.found_user[0].id}</th>
+                        <td>${data1.found_user[0].username}</td>
+                        <td>${data1.found_user_profile[0].role}</td>
+                        <td id='user-${data1.found_user[0].id}-actions'><a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_user[0].id}" href=""></a>
+                        </td>
+
+                    </tr>
+
+                `);
+
+                if ($('#current-logged-user-profile-role').val() == "Admin") {
+
+                    if (data1.found_user_profile[0].role == "User") {
+
+                        $(`#user-${data1.found_user[0].id}-actions`).append(`
+                        <a class="btn bi bi-person-check-fill" id="unban-user-${data1.found_user[0].id}-btn" href=""></a>`);
+
+                        $(`#unban-user-${data1.found_user[0].id}-btn`).attr("href", "{% url 'unban-user' user_pk=12345 %}".replace(/12345/, data1.found_user[0].id));
+
+                    }
+
+                }
+
+
+            }
+
+
+            else {
+
+            if (data1.found_user_profile[0].is_hidden_on_search_page == true) {
+
+                if (data1.found_user[0].id != $('#current-logged-user-id').val()) {
+
+                $("#user-table-body").html(`
+                <tr class="table-warning">
+                    <th scope="row">${data1.found_user[0].id}</th>
+                    <td>${data1.found_user[0].username}</td>
+                    <td>${data1.found_user_profile[0].role}</td>
+                    <td id='user-${data1.found_user[0].id}-actions' >
+                    <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_user[0].id}" href=""></a>
+                    <a class="btn bi bi-chat-dots" id="chat_with_${data1.found_user[0].id}_user"href=""></a>
+                    </td>
+                </tr>
+
+            `);
+
+            $(`#chat_with_${data1.found_user[0].id}_user`).attr("href", "{% url 'create-chat' user_pk=12345 %}".replace(/12345/, data1.found_user[0].id));
+
+            }
+            else {
+
+                $("#user-table-body").html(`
+                <tr class="table-warning">
+                    <th scope="row">${data1.found_user[0].id}</th>
+                    <td>${data1.found_user[0].username}</td>
+                    <td>${data1.found_user_profile[0].role}</td>
+                    <td id='user-${data1.found_user[0].id}-actions' >
+                    <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_user[0].id}" href=""></a>
+                    </td>
+                </tr>
+
+            `);
+
+            }
+
+            if ($('#current-logged-user-profile-role').val() == "Admin") {
+
+                    if (data1.found_user_profile[0].role == "User") {
+
+                        $(`#user-${data1.found_user[0].id}-actions`).append(`
+                        <a class="btn bi bi-person-fill-slash" id="ban-user-${data1.found_user[0].id}-btn" href=""></a>`);
+
+                        $(`#ban-user-${data1.found_user[0].id}-btn`).attr("href", "{% url 'ban-user' user_pk=12345 %}".replace(/12345/, data1.found_user[0].id));
+
+                    }
+
+                }
+
+
+
+            } else {
+
+                if (data1.found_user[0].id != $('#current-logged-user-id').val()) {
+
+                $("#user-table-body").html(`
+                <tr>
+                    <th scope="row">${data1.found_user[0].id}</th>
+                    <td>${data1.found_user[0].username}</td>
+                    <td>${data1.found_user_profile[0].role}</td>
+                    <td id='user-${data1.found_user[0].id}-actions' >
+                    <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_user[0].id}" href=""></a>
+                    <a class="btn bi bi-chat-dots" id="chat_with_${data1.found_user[0].id}_user"href=""></a></td>
+                </tr>
+
+            `);
+
+            $(`#chat_with_${data1.found_user[0].id}_user`).attr("href", "{% url 'create-chat' user_pk=12345 %}".replace(/12345/, data1.found_user[0].id));
+                }
+
+                else {
+
+                $("#user-table-body").html(`
+                <tr>
+                    <th scope="row">${data1.found_user[0].id}</th>
+                    <td>${data1.found_user[0].username}</td>
+                    <td>${data1.found_user_profile[0].role}</td>
+                    <td id='user-${data1.found_user[0].id}-actions' >
+                    <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_user[0].id}" href=""></a>
+                </tr>
+
+            `);
+
+                }
+
+                if ($('#current-logged-user-profile-role').val() == "Admin") {
+
+                    if (data1.found_user_profile[0].role == "User") {
+
+                        $(`#user-${data1.found_user[0].id}-actions`).append(`
+                        <a class="btn bi bi-person-fill-slash" id="ban-user-${data1.found_user[0].id}-btn" href=""></a>`);
+
+                        $(`#ban-user-${data1.found_user[0].id}-btn`).attr("href", "{% url 'ban-user' user_pk=12345 %}".replace(/12345/, data1.found_user[0].id));
+
+                    }
+
+                }
+
+
+            }
+
+            }
+
+             /* $("#user-table-body").html(`
+                <tr class="table-warning">
+                    <th scope="row">${data1.found_user[0].id}</th>
+                    <td>${data1.found_user[0].username}</td>
+                    <td>${data1.found_user_profile[0].role}</td>
+                    <td><a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_user[0].id}" href=""></a></td>
+                </tr>
+
+            `); */
+
+             $(`#schedule_show_${data1.found_user[0].id}`).attr("href", "{% url 'show-profile' user_pk=12345 %}".replace(/12345/, data1.found_user[0].id));
+            //profile/${data1.found_user[0].id}
+
+            } else {
+
+                $("#user-table-body").html(``);
+
+                $('#no-user-found-message').removeClass('visually-hidden');
+
+            }
+
+		  },
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+
+
+	}
+
+
+function send_user_search_ajax_username_role_request() {
+
+        $('#no-user-found-message').addClass('visually-hidden');
+
+        $("#user-table-body").html(``);
+
+        $('#user-search-loading-spinner').removeClass('d-none');
+
+		$.ajax({
+		  data: {"username": $('#search-nickname-field').val(), "role": $('#user-search-role-select').val() },
+		  dataType: 'json',
+		  url: "{% url 'get-user-by-nickname-role-in-search-page' %}",
+
+		  success: function(data1){
+
+		        $('#user-search-loading-spinner').addClass('d-none');
+
+		        if (data1.found_users.length == 0) {
+		            $('#no-user-found-message').removeClass('visually-hidden');
+
+		        }
+
+
+                for(i=0; i < data1.found_users.length; i++) {
+
+                    if (data1.found_users_profiles[i].is_banned == true) {
+                        $("#user-table-body").append(`
+                            <tr class="table-danger">
+                                <th scope="row">${data1.found_users[i].id}</th>
+                                <td>${data1.found_users[i].username}</td>
+                                <td>${data1.found_users_profiles[i].role}</td>
+                                <td id='user-${data1.found_users[i].id}-actions'><a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_users[i].id}" href=""></a></td>
+                            </tr>
+
+                        `);
+
+                        if ($('#current-logged-user-profile-role').val() == "Admin") {
+
+                            if (data1.found_users_profiles[i].role == "User") {
+
+                                $(`#user-${data1.found_users[i].id}-actions`).append(`
+                                <a class="btn bi bi-person-check-fill" id="unban-user-${data1.found_users[i].id}-btn" href=""></a>`);
+
+                                $(`#unban-user-${data1.found_users[i].id}-btn`).attr("href", "{% url 'unban-user' user_pk=12345 %}".replace(/12345/, data1.found_users[i].id));
+
+                            }
+
+                        }
+
+
+                    }
+
+                    else {
+
+                    if (data1.found_users_profiles[i].is_hidden_on_search_page == true) {
+
+
+
+                    if (data1.found_users[i].id != $('#current-logged-user-id').val()) {
+                    $("#user-table-body").append(`
+                        <tr class="table-warning">
+                            <th scope="row">${data1.found_users[i].id}</th>
+                            <td>${data1.found_users[i].username}</td>
+                            <td>${data1.found_users_profiles[i].role}</td>
+                            <td>
+                            <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_users[i].id}" href=""></a>
+                            <a class="btn bi bi-chat-dots" id="chat_with_${data1.found_users[i].id}_user" href=""></a>
+                            </td>
+                        </tr>
+
+                    `);
+
+                    $(`#chat_with_${data1.found_users[i].id}_user`).attr("href", "{% url 'create-chat' user_pk=12345 %}".replace(/12345/, data1.found_users[i].id));
+
+                    }
+
+                    else {
+
+
+                        $("#user-table-body").append(`
+                        <tr class="table-warning">
+                            <th scope="row">${data1.found_users[i].id}</th>
+                            <td>${data1.found_users[i].username}</td>
+                            <td>${data1.found_users_profiles[i].role}</td>
+                            <td>
+                            <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_users[i].id}" href=""></a>
+                            </td>
+                        </tr>
+
+                    `);
+
+
+                    }
+
+
+                    if ($('#current-logged-user-profile-role').val() == "Admin") {
+
+                    if (data1.found_users_profiles[i].role == "User") {
+
+                        $(`#user-${data1.found_users[i].id}-actions`).append(`
+                        <a class="btn bi bi-person-fill-slash" id="ban-user-${data1.found_users[i].id}-btn" href=""></a>`);
+
+                        $(`#ban-user-${data1.found_users[i].id}-btn`).attr("href", "{% url 'ban-user' user_pk=12345 %}".replace(/12345/, data1.found_users[i].id));
+
+                    }
+
+                }
+
+
+                    } else {
+
+                        if (data1.found_users[i].id != $('#current-logged-user-id').val()) {
+
+                        $("#user-table-body").append(`
+                        <tr>
+                            <th scope="row">${data1.found_users[i].id}</th>
+                            <td>${data1.found_users[i].username}</td>
+                            <td>${data1.found_users_profiles[i].role}</td>
+                            <td id='user-${data1.found_users[i].id}-actions' >
+                            <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_users[i].id}" href=""></a>
+                            <a class="btn bi bi-chat-dots" id="chat_with_${data1.found_users[i].id}_user" href=""></a>
+                            </td>
+                        </tr>
+
+                    `);
+
+                    $(`#chat_with_${data1.found_users[i].id}_user`).attr("href", "{% url 'create-chat' user_pk=12345 %}".replace(/12345/, data1.found_users[i].id));
+
+                    }
+
+                    else {
+
+                        $("#user-table-body").append(`
+                        <tr>
+                            <th scope="row">${data1.found_users[i].id}</th>
+                            <td>${data1.found_users[i].username}</td>
+                            <td>${data1.found_users_profiles[i].role}</td>
+                            <td id='user-${data1.found_users[i].id}-actions' >
+                            <a class="btn bi bi-calendar-event" id="schedule_show_${data1.found_users[i].id}" href=""></a>
+                            </td>
+                        </tr>
+
+                    `);
+
+
+                    }
+
+                    if ($('#current-logged-user-profile-role').val() == "Admin") {
+
+                    if (data1.found_users_profiles[i].role == "User") {
+
+                        $(`#user-${data1.found_users[i].id}-actions`).append(`
+                        <a class="btn bi bi-person-fill-slash" id="ban-user-${data1.found_users[i].id}-btn" href=""></a>`);
+
+                        $(`#ban-user-${data1.found_users[i].id}-btn`).attr("href", "{% url 'ban-user' user_pk=12345 %}".replace(/12345/, data1.found_users[i].id));
+
+                    }
+
+                }
+
+
+                    }
+
+
+
+                    $(`#schedule_show_${data1.found_users[i].id}`).attr("href", "{% url 'show-profile' user_pk=12345 %}".replace(/12345/, data1.found_users[i].id));
+
+                    }
+                }
+
+		  },
+
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+    	}
+
+
+
+$(document).ready(function(){
+
+    $('#search-id-field').keyup(function() {
+
+    if ($('#search-id-field').val() == '') {
+
+        $('#search-nickname-field').prop('disabled', false);
+        $('#user-search-role-select').prop('disabled', false);
+
+    } else {
+        $('#search-nickname-field').prop('disabled', true);
+        // $('#user-search-role-select').prop("selectedIndex", "default");
+        $('#user-search-role-select').prop('disabled', true);
+    }
+
+    })
+
+
+    $('#search-nickname-field').keyup(function() {
+
+        if ($('#search-nickname-field').val() == '') {
+
+        $('#search-id-field').prop('disabled', false);
+
+    } else {
+
+        $('#search-id-field').prop('disabled', true);
+
+    }
+
+    })
+
+
+    $('#user-search-role-select').keyup(function() {
+
+
+    })
+
+    $('#search-user-button').click(function() {
+
+        // alert('Works');
+
+        if ($('#search-id-field').val() != '') {
+            send_user_search_ajax_id_request();
+        }
+        else if ($('#search-nickname-field').val() != '') {
+            // alert("Nickname isn't empty detected!");
+            send_user_search_ajax_username_role_request();
+        }
+
+        else if ($('#search-nickname-field').val() == '' && $('#search-id-field').val() == '') {
+            // alert("Neither id nor username fields are filled!");
+            send_user_search_ajax_username_role_request();
+
+        }
+
+    })
+
+
+})
+
+</script>
+
+{% endblock my_javascript_page_code %}

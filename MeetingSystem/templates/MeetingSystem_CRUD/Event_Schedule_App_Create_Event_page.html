@@ -1,0 +1,325 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Форма создания события {% endblock title %}
+
+{% block main-content %}
+	<div class="form-container">
+		<div class="mt-5 pb-3 w-100 h-100 d-flex align-items-center justify-content-center">
+				{% block event_form %}
+				<form method="GET" id="meeting-event-form" class="meeting-event-form meeting-event-form-border p-2 mt-5">
+				<label for="form-meeting-event-title-input" class="form-label fs-5 text-center">Форма создания нового события</label>
+				<input type="text" placeholder="Название события" id="form-meeting-event-title-input" name="meeting-event-title" class="form-control mt-2 mb-2" required="required">
+
+				<label for="Event_Description_input" class="form-label mt-2">Описание события</label>
+				<textarea class="form-control event_description_textarea" name="event-description" id="Event_Description_input" rows="3" required="required"></textarea>
+
+				<label for="form-meeting-select" class="form-label mt-2">Мероприятие</label>
+				<select name="meeting-select" id="form-meeting-select" class="form-control mb-2" onchange="change_date_limits(this);">
+					{% for current_meeting in Meetings %}
+					<option value="{{ current_meeting.pk }}">{{ current_meeting }}</option>
+					{% endfor %}
+				</select>
+
+				{% for current_meeting_pk, current_meeting_start_date, current_meeting_end_date in Start_End_Dates %}
+					<input type="hidden" id="{{current_meeting_pk.pk }}_meeting_start_date" value="{{ current_meeting_start_date.start_date|date:'Y-m-d' }}">
+					<input type="hidden" id="{{current_meeting_pk.pk }}_meeting_end_date" value="{{ current_meeting_end_date.end_date|date:'Y-m-d' }}">
+				{% endfor %}
+
+				<label for="form-meeting-event-end-date-input" class="form-label mt-2">Дата события</label>
+				<input type="date" value="" id="form-meeting-event-end-date-input" onchange="reset_time_on_date_change();" name="form-meeting-event-end-date-input" class="form-control mb-2" required="required"> <!-- min="2023-06-20" -->
+
+				<label for="form-meeting-event-start-time-input" class="form-label mt-2">Время начала события</label>
+				<input type="time" onchange="change_end_limit_for_meeting_event_time();" id="form-meeting-event-start-time-input" name="form-meeting-event-start-time-input" class="form-control mb-2" required="required">
+				<label for="form-meeting-event-start-time-input" class="small text-danger d-none" id="start-time-danger-label">Время пересекается с уже существующим событием</label>
+
+
+				<label for="form-meeting-event-end-time-input" class="form-label mt-2">Время окончания события</label>
+				<input type="time" id="form-meeting-event-end-time-input" name="form-meeting-event-end-time-input" class="form-control mb-2" required="required">
+				<label for="form-meeting-event-end-time-input" class="small text-danger d-none" id="end-time-danger-label">Время пересекается с уже существующим событием</label>
+
+				<input type="submit" name="meeting-creation-form-submit-btn" id="meeting-creation-form-submit-btn" class="btn btn-primary mt-1 w-100" value="Создать событие">
+			</form>
+			{% endblock event_form %}
+		</div>
+	</div>
+
+	<div class="container w-100 mt-3 main-container">
+		<div id="databox" class="weekday-table-container mt-4">
+
+<!--			{% for current_meeting in Meetings %}-->
+<!--			<table class="table fw-normal table-text-align">-->
+<!--					  <thead>-->
+<!--						<tr class="table-success"> &lt;!&ndash; table-header &ndash;&gt;-->
+<!--						  <th scope="col" colspan="5">{{ current_meeting.start_date| date:"l" }}, {{ current_meeting.start_date }}</th>-->
+<!--						</tr>-->
+
+<!--					  </thead>-->
+<!--					  <tbody>-->
+<!--						{% for current_event in Events_of_the_meeting %}-->
+<!--						<tr>-->
+<!--						  <td class="time-cell">{{ current_event.event_start_time }}-{{ current_event.event_end_time }}</td>-->
+<!--						  <td class="event-cell">{{ current_event.event_title }}</td>-->
+<!--						</tr>-->
+<!--						{% endfor %}-->
+
+<!--					  </tbody>-->
+<!--					</table>-->
+
+<!--			{% endfor %}-->
+		</div>
+	</div>
+
+
+{% endblock main-content %}
+
+{% block my_javascript_page_code %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+	function format_time(current_time) {
+
+  		return current_time.slice(0, 5);
+	}
+
+	function format_date(current_date) {
+
+		day_of_the_week = {1: "Понедельник", 2: "Вторник", 3: "Среда", 4: "Четверг", 5: "Пятница", 6: "Суббота", 7: "Воскресенье"};
+		month_names = {1: "января", 2: "февраля", 3: "марта", 4: "апреля", 5: "май", 6: "июня", 7: "июля", 8: "августа", 9: "сентября", 10: "октября", 11: "ноября", 12: "декабря"}
+
+
+		myDate = new Date(current_date);
+
+		return day_of_the_week[myDate.getDay()] + ", " + myDate.getDate() + " " + month_names[myDate.getMonth() + 1] + " " + myDate.getFullYear() + " г."
+
+	}
+
+	function send_ajax_request() {
+
+		$.ajax({
+		  data: {"meeting-select": $('#form-meeting-select').val(), "form-meeting-event-end-date-input": $('#form-meeting-event-end-date-input').val() }, // {form-meeting-select: $(this).serialize(), meeting_select2: $('#form-meeting-event-end-date-input').serialize()}, // $(this).serialize(), // {meeting-select: $('#meeting-select').serialize(),}, //
+		  dataType: 'json',
+		  url: "{% url 'get-day-schedule-for-event-form' %}",
+		  success: function(data1){
+
+				if (data1.events_of_the_day.length != 0) {
+
+				$('#databox').html(`
+				<table class="table fw-normal table-text-align">
+					  <thead>
+						<tr class="table-success"> <!-- table-header -->
+						  <th scope="col" colspan="4">${format_date(data1.todays_date)}</th>
+						</tr>
+					  </thead>
+					  <tbody id="events_section">
+					  </tbody>
+				</table>
+					   `);
+
+				// alert(data1.events_of_the_day[0].event_title);
+
+				for (i = 0; i < data1.events_of_the_day.length; i++) {
+						$("#events_section").append(`
+						<tr>
+						<td class="time-cell">
+						${format_time(current_time=data1.events_of_the_day[i].event_start_time)}-${format_time(current_time=data1.events_of_the_day[i].event_end_time)}
+						</td>
+						<td class="event-cell-for-form">
+						${data1.events_of_the_day[i].event_title}
+						</td>
+						</tr>
+						`);
+
+				}
+
+			} else {
+
+				$('#databox').html("<h2 class='text-center mb-5'>На данную дату не запланировано ни одно мероприятие!</h2>");
+
+			}
+
+		  },
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+
+
+	}
+
+
+
+
+
+
+
+
+	function send_time_check_ajax_request(time_element, danger_text_element) {
+
+		$.ajax({
+		  data: {"meeting-select": $('#form-meeting-select').val(),
+		  "form-meeting-event-end-date-input": $('#form-meeting-event-end-date-input').val(),
+		   "event-time": time_element.val()}, // $('#form-meeting-event-start-time-input')
+		  dataType: 'json',
+		  url: "{% url 'get-start-time-check-for-event-form' %}",
+		  success: function(data1){
+
+			// alert("Ajax request is sent!")
+
+			if (data1.time_mistake == true) {
+				danger_text_element.removeClass("d-none").addClass("d-block"); // $("#start-time-danger-label")
+
+				if ($('#start-time-danger-label').hasClass('d-block') || $('#end-time-danger-label').hasClass('d-block') || $('#start-time-danger-label').hasClass('d-block') && $('#end-time-danger-label').hasClass('d-block'))
+				{
+
+				$("#meeting-creation-form-submit-btn").prop("disabled", true);
+
+				}
+			}
+			else {
+				danger_text_element.removeClass("d-block").addClass("d-none");
+				if ($('#start-time-danger-label').hasClass('d-none') && $('#end-time-danger-label').hasClass('d-none'))
+				{
+
+				$("#meeting-creation-form-submit-btn").prop("disabled", false);
+
+				}
+			}
+
+		  },
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+
+
+	}
+
+
+
+
+
+
+
+
+	$(document).ready(function(){
+
+
+	send_ajax_request();
+
+	$('#form-meeting-event-start-time-input').change(function() {
+
+		send_time_check_ajax_request(time_element=$('#form-meeting-event-start-time-input'), danger_text_element=$("#start-time-danger-label"));
+		//alert("Start time change works!");
+
+	})
+
+	// #start-time-danger-label
+
+
+	$('#form-meeting-event-end-time-input').change(function() {
+
+		send_time_check_ajax_request(time_element=$('#form-meeting-event-end-time-input'), danger_text_element=$("#end-time-danger-label"));
+		//alert("Start time change works!");
+
+	})
+
+
+		// $('#end-time-danger-label)
+		// $('#form-meeting-event-end-time-input')
+
+    $('#form-meeting-select').change(function() {
+
+		send_ajax_request();
+
+     })
+
+
+     $('#form-meeting-event-end-date-input').change(function() {
+
+			send_ajax_request();
+
+     })
+
+  })
+</script>
+
+{% block additional_js_for_event_creation %}
+<script type="text/javascript">
+
+
+	var start_date_limit = document.getElementById(`${document.getElementById("form-meeting-select").value}_meeting_start_date`).value;
+	var end_date_limit = document.getElementById(`${document.getElementById("form-meeting-select").value}_meeting_end_date`).value;
+
+	var event_date_input = document.getElementById('form-meeting-event-end-date-input');
+
+	event_date_input.value = start_date_limit;
+
+	event_date_input.min = start_date_limit;
+	event_date_input.max = end_date_limit;
+
+
+function change_end_limit_for_meeting_event_time() {
+
+	var start_time_input = document.getElementById('form-meeting-event-start-time-input');
+
+	var end_time_input = document.getElementById('form-meeting-event-end-time-input');
+
+	end_time_input.min = start_time_input.value;
+
+}
+
+function reset_time_on_date_change() {
+
+	var start_time_input = document.getElementById('form-meeting-event-start-time-input');
+
+	var end_time_input = document.getElementById('form-meeting-event-end-time-input');
+
+	start_time_input.value = "";
+	end_time_input.value = "";
+
+	$("#meeting-creation-form-submit-btn").prop("disabled", false);
+
+	$("#start-time-danger-label").removeClass("d-block").addClass("d-none");
+
+	$("#end-time-danger-label").removeClass("d-block").addClass("d-none");
+
+}
+
+function change_date_limits(element) {
+<!--	alert(element.value);-->
+
+	var start_date_limit = document.getElementById(`${element.value}_meeting_start_date`).value;
+	var end_date_limit = document.getElementById(`${element.value}_meeting_end_date`).value;
+
+	var event_date_input = document.getElementById('form-meeting-event-end-date-input');
+
+	event_date_input.value = start_date_limit;
+
+	event_date_input.min = start_date_limit;
+	event_date_input.max = end_date_limit;
+
+	var start_time_input = document.getElementById('form-meeting-event-start-time-input');
+
+	var end_time_input = document.getElementById('form-meeting-event-end-time-input');
+
+	start_time_input.value = "";
+	end_time_input.value = "";
+
+	$("#meeting-creation-form-submit-btn").prop("disabled", false);
+
+	$("#start-time-danger-label").removeClass("d-block").addClass("d-none");
+
+	$("#end-time-danger-label").removeClass("d-block").addClass("d-none");
+
+<!--	alert(start_date_limit);-->
+<!--	alert(end_date_limit);-->
+}
+
+
+</script>
+
+{% endblock additional_js_for_event_creation %}
+
+{% endblock my_javascript_page_code %}

@@ -1,0 +1,172 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Расписание текущего мероприятия {% endblock title %}
+
+{% block main-content %}
+
+	{% load MeetingSystem_CRUD_tags %}
+
+
+    <div class="container w-100 main-container mt-5"> <h2 class="text-center mt-4">{{ Current_Meeting.meeting_title }}
+		{% if request.user.profile.role == "Admin" %}
+		<a style="" class="btn btn-danger bi bi-trash3 position-absolute mx-2 mt-1 " href="{% url 'delete-meeting' meeting_pk=Current_Meeting.id %}"></a></h2>
+		{% endif %}
+	</div>
+
+    <div class="container w-100 main-container">
+
+		{% regroup Events_of_the_meeting by event_date as grouped_events %}
+
+<!--			{{ grouped_events }}-->
+
+			{% for event in grouped_events %}
+
+		<div class="weekday-table-container mt-4">
+
+
+			<table class="table fw-normal table-text-align">
+			  <thead>
+			    <tr class="table-success"> <!-- table-header -->
+			      <th scope="col" colspan="5">{{ event.grouper| date:"l" }}, {{ event.grouper }}</th>
+			    </tr>
+
+			  </thead>
+			  <tbody>
+			  	{% for current_event in event.list %}
+			    <tr>
+			      <td class="time-cell">{{ current_event.event_start_time }}-{{ current_event.event_end_time }}</td>
+<!--			  <td class="event-cell">{{ current_event.event_title }}</td>-->
+				  <td class="event-cell">{% getEventDescriptionPopover event_title=current_event.event_title event_description=current_event.event_description %} </td>
+				  <td class="subscription-number-cell">{% getEventSubscriptionsCount event_pk=current_event.id %}</td>
+
+					{% if request.user.is_authenticated %}
+					{% if request.user.profile.role == "User" %}
+				  <td class="add-event-to-profile-cell">
+					  {% if request.user.profile.user_events.all %}
+
+						  {% if current_event not in request.user.profile.user_events.all %}
+						  <a class="bi bi-plus-circle text-black" href="{% url 'add-event-to-profile' event_pk=current_event.pk %}"></a>
+						  {% else %}
+						  <a class="bi bi-x-square text-black" href="{% url 'remove-event-from-profile' event_pk=current_event.pk %}"></a> <!--bi bi-check-lg-->
+						  {% endif %}
+					  {% else %}
+
+					  		<a class="bi bi-plus-circle text-black" href="{% url 'add-event-to-profile' event_pk=current_event.pk %}"></a>
+					  {% endif %}
+
+<!--					  <a class="bi bi-pencil-square text-black" href="{% url 'remove-event-from-profile' event_pk=current_event.pk %}"></a>-->
+
+
+
+				  </td>
+
+					{% elif request.user.profile.role == "Admin" %}
+
+					<td class="add-event-to-profile-cell">
+
+						<button class="btn bi bi-pencil-square text-black" data-bs-toggle="modal" data-bs-target="#admin-event-actions-modal" onclick="open_modal_for_deleting_event(this);" value="{{ current_event.pk }}"></button>
+					</td>
+
+					{% endif %}
+			    </tr>
+
+					{% endif %}
+
+
+			  	{% endfor %}
+
+
+			  </tbody>
+			</table>
+
+
+		</div>
+
+		{% endfor %}
+
+
+    </div>
+
+<div class="modal fade" id="admin-event-actions-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Возможные операции над события</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+<!--		  <input type="hidden" id="modal-event-id-hidden-input" value="">-->
+<!--		  <input type="hidden" id="modal-event-title-hidden-input" value="">-->
+<!--        <div id="delete-modal-text">Вы действительно хотите удалить данное событие из системы? (Удаление будет необратимо)</div>-->
+
+		  <div id="delete-modal-text">Возможные действия над событием:</div>
+
+
+		  <div><a id="add-event-to-profile-btn" href="#" class="btn btn-primary mt-2"><i class="bi bi-plus-square"></i> Добавить событие в расписание</a></div>
+		  <div><a id="delete-event-from-profile-btn" href="#" class="btn btn-primary mt-2"><i class="bi bi-x-square"></i> Исключить событие из расписания</a></div>
+		  <div><a class="btn btn-danger mt-2" href="#" id="modal-event-delete-btn"><i class="bi bi-trash"></i> Удалить событие из системы</a></div>
+		  <div><a id="edit-event-btn" href="#" class="btn btn-success mt-2"><i class="bi bi-pencil-fill"></i> Редактировать событие</a></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Выйти</button>
+<!--        <a type="button" href="#" class="btn btn-primary" id="modal-event-delete-btn">Удалить</a>-->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script type="text/javascript">
+
+	function ajax_request_to_check_current_event_in_profile(event_pk) {
+
+		$.ajax({
+		  data: {"event-pk-to-check-in-profile": event_pk},
+		  dataType: 'json',
+		  url: "{% url 'check-current-event-in-profile' %}",
+		  success: function(data1){
+			// alert(data1.is_event_in_current_profile);
+
+			$("#edit-event-btn").attr("href", "{% url 'edit_event' event_pk=12345 %}".replace(/12345/, event_pk));
+
+			if (data1.is_event_in_current_profile == true) {
+				$("#add-event-to-profile-btn").hide(); //addClass("d-none");
+
+				$("#delete-event-from-profile-btn").show(); //.addClass("d-block");
+
+				$("#delete-event-from-profile-btn").attr("href", "{% url 'remove-event-from-profile' event_pk=12345 %}".replace(/12345/, event_pk));
+
+			} else {
+				$("#delete-event-from-profile-btn").hide(); //addClass("d-none");
+
+				$("#add-event-to-profile-btn").show() //addClass("d-block");
+				$("#add-event-to-profile-btn").attr("href", "{% url 'add-event-to-profile' event_pk=12345 %}".replace(/12345/, event_pk));
+
+
+
+			}
+
+		  },
+
+		  errors: function(e) {
+		  alert(e);
+
+		  }})
+
+	}
+
+	function open_modal_for_deleting_event(data) {
+	// $("#modal-event-id-hidden-input").val(data.value);
+	// $("#delete-modal-text").html(`Вы действительно хотите удалить ${$("#modal-event-id-hidden-input").val()}-событие из системы? (Удаление будет необратимо)`);
+	// alert(`h1 ${data.value}`);
+
+	ajax_request_to_check_current_event_in_profile(data.value);
+
+	$("#modal-event-delete-btn").attr("href", "{% url 'delete-event' event_pk=12345 %}".replace(/12345/, data.value));
+	}
+</script>
+
+
+{% endblock main-content %}
+

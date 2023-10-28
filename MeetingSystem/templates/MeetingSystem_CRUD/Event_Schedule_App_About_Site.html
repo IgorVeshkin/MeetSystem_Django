@@ -1,0 +1,42 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - О сайте {% endblock title %}
+
+{% block main-content %}
+
+        <div class="mt-5 pt-3 mx-2">
+            <p class="fs-6">Данный сайт был написан Вешкиным Игорем Ильичем для демонстрации своих
+                профессиональных навыков программирования</p>
+            <p class="fs-6">На сайте были реализованы следующие функции:</p>
+            <ul>
+                <li>Система учетной записи пользователя;</li>
+                <li>Разделение пользователей по ролям (<strong class="text-primary">Admin</strong>, <strong class="text-secondary">User</strong>) и предоставление различного функционала соответственно;
+                     <ol>  <br> <strong>Admin может: </strong>
+                        <li><strong class="text-primary">Admin</strong> может добавлять события мероприятий в свое расписание;</li>
+                        <li><strong class="text-primary">Admin</strong> может создавать/удалять мероприятия;</li>
+                        <li><strong class="text-primary">Admin</strong> может создавать/удалять/редактировать события мероприятий;</li>
+                        <li><strong class="text-primary">Admin</strong> может блокировать и разблокировать пользователей на сайте
+                            <strong class="text-success">(заблокированные пользователи не могут войти в учетную запись и им нельзя отправлять сообщения после блокировки);</strong></li>
+                        <li><strong class="text-primary">Admin</strong> может видить всех заблокированных пользователей и тех, кто пожелал скрыть профиль в общем поиске; </li>
+                        <li><strong class="text-primary">Admin</strong> не может быть заблокирован в системе; </li>
+                    </ol>
+
+                    <ol>  <br> <strong>User может: </strong>
+                        <li><strong class="text-secondary">User</strong> может добавлять события мероприятий в свое расписание;</li>
+                        <li><strong class="text-secondary">User</strong> видить ограниченное количество пользователей в поиске;</li>
+                        <li><strong class="text-secondary">User</strong> взаимодействовать с ограниченным количество пользователей системы;</li>
+                    </ol>
+                </li>
+                <br>
+                <p>При этом при попытке пользователя с ролью <strong class="text-secondary">User</strong> перейти на страницы отведенные под <strong class="text-primary">Admin</strong> пользователь будет перенаправлен на главную страницу; </p>
+                <li>Поиск пользователей;</li>
+                <li>Настройка информации профиля <strong class="text-secondary">(в том числе можно сокрыть отображение акаунта в поске)</strong>;</li>
+                <li>Просмотр расписаний других пользователей;</li>
+                <li>Real-Time Чат-система, позволяющая общаться с другими пользователями. <strong class="text-success">Возможна отправка, редактирование, удаление сообщений. Все изменения отобразяться у собеседника мгновенно!</strong>;</li>
+
+            </ul>
+
+            <a href="https://github.com/IgorVeshkin" class="pb-3 mx-2">Перейти на GitHub страницу Игоря Вешкина</a>
+        </div>
+
+{% endblock main-content %}

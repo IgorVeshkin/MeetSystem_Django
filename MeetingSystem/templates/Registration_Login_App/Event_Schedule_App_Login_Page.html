@@ -1,0 +1,67 @@
+{% extends 'Registration_Login_App/Event_Schedule_App_Registration_Login_Pages_base.html' %}
+
+{% block title %} Система менеждмента мероприятий - Вход в систему {% endblock title %}
+
+{% block form-area %}
+
+    <form method="POST" class="login-form login-form-border p-2 mt-5">
+        {% csrf_token %}
+
+        <label class="form-label fs-5 text-center mb-2">Вход в аккаунт пользователя</label> <br>
+
+        {% if messages %}
+				{% for message in messages %}
+					{% if 'error' in message.tags %}
+
+                            <div class="error-msg-box mb-2">
+                                <div class="{{ message.tags }} d-flex " > <div class="msg-box w-100 mt-1">{{ message }}</div>
+
+                                    <button onclick="remove_login_error_message(this);" class="bi bi-x-square-fill btn msg-exit-btn"></button>
+
+                                </div>
+                            </div>
+
+<!--                        <div class="error-msg-box">-->
+<!--							<div class="{{ message.tags }}">{{ message }} <button onclick="remove_login_error_message();" class="msg-exit-btn">X</button></div>-->
+<!--						</div>-->
+
+
+					{% endif %}
+				{% endfor %}
+            {% endif %}
+
+        {% for login_form_field in MeetingSystemLoginForm %}
+
+            {{ login_form_field.errors }}
+            {{ login_form_field.label }}
+            {{ login_form_field }}
+
+            {% if login_form_field.help_text %}
+            <p class="help">{{ login_form_field.help_text|safe }}</p>
+            {% endif %}
+
+        {% endfor %}
+
+        <input type="submit" name="" class="btn btn-primary w-100 mt-2" value="Войти в аккаунт">
+
+    </form>
+
+{% endblock form-area %}
+
+{% block javascript-code %}
+
+<script type="text/javascript">
+
+function remove_login_error_message() {
+
+	var msg_box_error = document.querySelector('.error-msg-box');
+
+	msg_box_error.parentNode.removeChild(msg_box_error);
+
+}
+</script>
+
+{% endblock javascript-code %}
+
+
+

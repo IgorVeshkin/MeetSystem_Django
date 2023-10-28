@@ -1,0 +1,590 @@
+{% extends "MeetingSystem_CRUD/Events_Schedule_App_base_template.html" %}
+
+{% block title %} Система менеждмента мероприятий - Текущая переписка {% endblock title %}
+
+{% block main-content %}
+
+{% load Chat_System_tags %}
+
+<div class="w-50 container">
+    <div class="mt-5 pb-3 w-100 h-100 d-flex align-items-center justify-content-center">
+      <div style="min-height: 89vh; min-width: 475px;" class="d-flex flex-column w-100 h-100 mt-3 border rounded">
+
+        <div style="height: 50px;"  id="Chatroom-header" class="d-flex w-100 bg-light">
+          <a href="{% url 'chats-main-page' %}" class="btn fs-5 mx-2 bi bi-arrow-return-left position-absolute"></a>
+          <div id="participant-name-title" class="w-100 h-100 mt-2 align-middle text-center">{% get_participant_name current_chat_room=current_chatroom logged_user_pk=request.user.pk %}</div>
+            {% get_participant_user_instance current_chat_room=current_chatroom logged_user_pk=request.user.pk as chat_mate %}
+        </div>
+
+        <div style="min-height: 67vh; max-height: 67vh;" id="messages-display-area" class="overflow-auto">
+
+<!--            <input type="hidden" id="current-chatroom-data-holder" value="{{ current_chatroom }}">-->
+            <input type="hidden" id="chatroom-messages-count" value="{{ chatroom_messages_count }}">
+
+            {% for current_message in chatroom_messages %}
+                {% if current_message.message_sender == request.user %}
+
+                    <div id="message_{{ current_message.id }}" class="message-container d-flex align-items-end flex-column">
+                        <div style="max-width: 50%;" class="">
+                          <div style="background-color: #D1E7DD; width:fit-content; " class="m-2 p-2 rounded">
+
+                              <div class="d-flex">
+                                  <div style="font-size: 14px;" class="text-start text-muted mt-1"> {{ current_message.message_sender }} </div>
+
+
+                                  <div class="btn-group ms-auto">
+                                      <a class="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                      </a>
+                                      <ul class="dropdown-menu">
+                                        <li><h4 class="dropdown-header">Возможные действия</h4></li>
+                                          {% if chat_mate.profile.is_banned == False %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item" onclick="load_message_for_editing({{ current_message.id }});" value="">Изменить сообщение</button></li>
+                                          {% endif %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item" onclick="delete_message(this);" value="{{ current_message.id }}">Удалить сообщение</button></li>
+                                      </ul>
+                                  </div>
+
+
+                              </div>
+
+
+                              <div id="message_{{ current_message.id }}_text">{{ current_message.message_text }}</div>
+                              <text id="message_{{ current_message.id }}_is_edited" class="text-muted">{% if current_message.is_message_edited %}  (ред.) {% endif %} </text>
+<!--                              <div class="d-flex">-->
+
+<!--                                  bi-check2-->
+<!--                              <i class="bi bi-check2-all mt-1"></i>-->
+                              <div style="font-size: 12px;" class="mt-2 text-end text-muted ms-auto">{{ current_message.creation_time|date:'d.m.Y H:i' }}</div>
+
+<!--                              </div>-->
+
+                          </div>
+                        </div>
+                    </div>
+
+                {% else %}
+
+                    <div id="message_{{ current_message.id }}" class="message-container">
+                        <div style="max-width: 50%;" class="">
+                          <div style="background-color: #FFF3CD; width:fit-content; " class="m-2 p-2 rounded">
+
+                              <div class="d-flex">
+
+                                  <div style="font-size: 14px;" class="text-start text-muted "> {{ current_message.message_sender }} </div>
+
+                                  <div class="btn-group ms-auto">
+                                      <a class="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                      </a>
+                                      <ul class="dropdown-menu">
+                                        <li><h4 class="dropdown-header">Возможные действия</h4></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item" onclick="delete_message(this);" value="{{ current_message.id }}">Удалить сообщение</button></li>
+                                      </ul>
+                                  </div>
+
+                              </div>
+
+
+                              <div id="message_{{ current_message.id }}_text"> {{ current_message.message_text }}</div>
+                              <text id="message_{{ current_message.id }}_is_edited" class="text-muted">{% if current_message.is_message_edited %}  (ред.) {% endif %} </text>
+                              <div style="font-size: 12px;" class="mt-2 text-end text-muted ">{{ current_message.creation_time|date:'d.m.Y H:i' }}</div>
+                          </div>
+                        </div>
+                    </div>
+
+                {% endif %}
+            {% endfor %}
+
+<!--          #FFF3CD - table-warning; CFF4FC - table-info; #F8F9FA - table-light; #D1E7DD - table-success;  -->
+
+<!--            <div class="message-container">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #FFF3CD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div> Хорошо! </div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:20</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--             <div class="message-container">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #FFF3CD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Сообщение для пользователя для проверки! Добавочный текст на всякий случай!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:22</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="message-container d-flex align-items-end flex-column">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #D1E7DD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Сообщение для пользователя для проверки! И еще немного текста для проверки! Для этого сообщения хватит!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:26</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="message-container d-flex align-items-end flex-column">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #D1E7DD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Отлично!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:27</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="message-container d-flex align-items-end flex-column">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #D1E7DD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Еще одно сообщение для проверки работы чат-системы!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:28</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+
+<!--            <div class="message-container">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #FFF3CD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Вроде бы система неплохо справляется с отрисовкой сообщений! Мне нравиться!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:36</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="message-container">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #FFF3CD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Классно получается! Я молодец!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:37</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+
+<!--            <div class="message-container d-flex align-items-end flex-column">-->
+<!--                <div style="max-width: 50%;" class="">-->
+<!--                  <div style="background-color: #D1E7DD; width:fit-content; " class="m-2 p-2 rounded">-->
+<!--                      <div>Классно! Я думаю что на этом сообщении можно заканчивать проверку работы интерфейса!-->
+<!--                      Завтра нужно будет заняться логической частью приложения с использованием Django!</div>-->
+<!--                      <div style="font-size: 12px;" class="mt-2 text-end text-muted ">12.10.2023 21:40</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+
+
+        </div>
+
+
+
+
+        <div id="message-send-form" class="bg-light">
+          <input type="hidden" id="message-id-hidden-for-editing" value="">
+<!--            <form method="GET"-->
+          <div style="min-height: 15vh;" class="h-100 d-flex align-items-center justify-content-center">
+              {% if chat_mate.profile.is_banned == False %}
+
+            <textarea style="height: 6rem; resize: none; width: 85%;" id="message-text-area" class="px-2 form-control" required></textarea>
+<!--              type="submit"-->
+            <button id="send-message-btn" class="btn bi bi-send border rounded-circle ms-2"></button>
+
+              <div id="edit-buttons" class="d-flex flex-column mx-2">
+
+                <button id="edit-message-btn" class="btn bi bi-pencil border rounded-circle ms-2" onclick="edit_message_ajax_request();"></button>
+                <button id="cancel-message-edit-btn" class="btn bi bi-x-lg border rounded-circle ms-2 mt-2" onclick="unload_message_for_editing();"></button>
+              </div>
+
+                {% else %}
+                <div class="text-danger text-center"><h4>Извените, отправка сообщений заблокированым в системе пользователям запрещена</h4></div>
+                {% endif %}
+
+          </div>
+
+        </div>
+
+
+      </div>
+    </div>
+</div>
+
+{% endblock main-content %}
+
+
+{% block my_javascript_page_code %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!--    $('#current-chatroom-data-holder').val()-->
+
+<script>
+
+    var isPaused = false;
+
+    function format_message_datatime(message_datatime) {
+
+          var message_creation_date = new Date(message_datatime);
+		  var message_day = message_creation_date.getDate();
+		  var message_month = message_creation_date.getMonth() + 1;
+          var message_year = message_creation_date.getFullYear();
+
+          var message_hours = message_creation_date.getHours();
+          var message_minutes = message_creation_date.getMinutes();
+
+
+		  if(message_day < 10) {
+
+		    message_day = "0" + message_day;
+
+		  }
+
+		  if(message_month < 10) {
+
+		    message_month = "0" + message_month;
+
+		  }
+
+		  if(message_hours < 10) {
+
+		    message_hours = "0" + message_hours;
+
+		  }
+
+		  if(message_minutes < 10) {
+
+		    message_minutes = "0" + message_minutes;
+
+		  }
+
+          return message_day + "." + message_month + "." + message_year + " " + message_hours + ":" + message_minutes;
+
+    }
+
+    // function send_message_ajax_request() {
+    $('#send-message-btn').click(function() {
+
+
+        if ($('#message-text-area').val() == "") {
+            return;
+        }
+
+        // alert('works 2');
+
+        $("#chatroom-messages-count").val(Number($("#chatroom-messages-count").val()) + 1);
+
+        $.ajax({
+		  data: {"current_chat": {{ current_chatroom.id }},
+		  "message_text": $('#message-text-area').val(),
+		  "message_sender": {{ request.user.id }} },
+		  dataType: 'json',
+		  url: "{% url 'send-message' %}",
+		  success: function(response_data){
+
+		  isPaused = true;
+
+
+          var message_creation_date_string = format_message_datatime(response_data.creation_time);
+
+            $("#messages-display-area").append(`
+                <div id="message_${ response_data.message_id }" class="message-container d-flex align-items-end flex-column">
+                        <div style="max-width: 50%;" class="">
+                          <div style="background-color: #D1E7DD; width:fit-content; " class="m-2 p-2 rounded">
+
+                          <div class="d-flex">
+
+                                  <div style="font-size: 14px;" class="text-start text-muted "> ${ response_data.message_sender } </div>
+
+                                  <div class="btn-group ms-auto">
+                                      <a class="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                      </a>
+                                      <ul class="dropdown-menu">
+                                        <li><h4 class="dropdown-header">Возможные действия</h4></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item" onclick="load_message_for_editing(${ response_data.message_id });">Изменить сообщение</button></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item" onclick="delete_message(this);" value="${ response_data.message_id }">Удалить сообщение</button></li>
+                                      </ul>
+                                  </div>
+
+                              </div>
+
+
+                              <div id="message_${ response_data.message_id }_text">${ response_data.message_text }</div>
+                              <text id="message_${ response_data.message_id }_is_edited" class="text-muted"></text>
+                              <div style="font-size: 12px;" class="mt-2 text-end text-muted ">${ message_creation_date_string }</div>
+                          </div>
+                        </div>
+                    </div>
+            `);
+
+
+            isPaused = false;
+
+		  },
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+    	$('#message-text-area').val("");
+
+    }
+
+    );
+
+
+    function delete_message(this_message) {
+
+        $.ajax({
+		  data: {"message_id": this_message.value,
+		  "chatroom_id": {{ current_chatroom.id }},
+		  "message_sender_id": {{ request.user.id }} },
+		  dataType: 'json',
+		  url: "{% url 'delete-message' %}",
+
+		  success: function(response_data){
+
+		        $(`#message_${this_message.value}`).remove();
+		        $("#chatroom-messages-count").val($("#chatroom-messages-count").val() - 1);
+
+		  },
+
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+
+
+    }
+
+
+    function load_message_for_editing(this_message_value) {
+
+        $("#edit-message-btn").show();
+        $("#cancel-message-edit-btn").show();
+
+        $("#send-message-btn").hide();
+
+        $("#message-text-area").val($(`#message_${this_message_value}_text`).text());
+
+        $("#message-id-hidden-for-editing").val(this_message_value);
+
+
+    }
+
+    function unload_message_for_editing() {
+
+        $("#edit-message-btn").hide();
+        $("#cancel-message-edit-btn").hide();
+
+        $("#send-message-btn").show();
+
+        $("#message-text-area").val("");
+
+        $("#message-id-hidden-for-editing").val("");
+
+
+    }
+
+
+    function edit_message_ajax_request() {
+
+        var message_pk = $("#message-id-hidden-for-editing").val();
+
+
+        $.ajax({
+		  data: {"message_id": message_pk,
+		  "message_edited_text": $("#message-text-area").val(),
+		  "current_chatroom_id": {{ current_chatroom.id }}, },
+		  dataType: 'json',
+		  url: "{% url 'edit-message' %}",
+
+		  success: function(response_data) {
+
+		        $(`#message_${message_pk}_text`).text(response_data.message_edited_text);
+                $(`#message_${message_pk}_is_edited`).text("(ред.)");
+
+		        $('#message-text-area').val("");
+
+
+		  },
+
+		  errors: function(e) {
+		  alert(e);
+    	}});
+
+    	unload_message_for_editing();
+
+
+    }
+
+
+
+     $(document).ready(function () {
+
+        var edit_message_button = $("#edit-message-btn"); // edit-buttons
+
+        var cancel_message_editing_button = $("#cancel-message-edit-btn");
+
+        edit_message_button.hide();
+
+        cancel_message_editing_button.hide();
+
+
+        var messages_area = $("#messages-display-area");
+
+        messages_area.scrollTop(messages_area.prop("scrollHeight"));
+
+
+             });
+
+
+
+
+
+         setInterval(function(){
+
+
+            $.ajax({
+              data: {"messages_count_on_page": $("#chatroom-messages-count").val(),
+              "current_chat": {{ current_chatroom.id }}, },
+              dataType: 'json',
+              url: "{% url 'check-for-new-messages' %}",
+
+              success: function(response_data){
+
+                    if(!isPaused) {
+
+
+                    if (response_data.new_messages_to_display.length > 0) {
+
+                        $("#chatroom-messages-count").val(parseInt($("#chatroom-messages-count").val()) + 1);
+
+                        for (i=0; i < response_data.new_messages_to_display.length; i++) {
+
+                            var message_creation_date_string = format_message_datatime(response_data.new_messages_to_display[i].creation_time);
+
+                            $("#messages-display-area").append(`
+                            <div id="message_${ response_data.new_messages_to_display[i].id }" class="message-container">
+                                <div style="max-width: 50%;" class="">
+                                    <div style="background-color: #FFF3CD; width:fit-content; " class="m-2 p-2 rounded">
+
+                                    <div class="d-flex">
+
+                                  <div style="font-size: 14px;" class="text-start text-muted "> ${ $("#participant-name-title").text() } </div>
+
+                                  <div class="btn-group ms-auto">
+                                      <a class="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                      </a>
+                                      <ul class="dropdown-menu">
+                                        <li><h4 class="dropdown-header">Возможные действия</h4></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item" onclick="delete_message(this);" value="${ response_data.new_messages_to_display[i].id }">Удалить сообщение</button></li>
+                                      </ul>
+                                  </div>
+
+                              </div>
+
+
+                              <div id="message_${ response_data.new_messages_to_display[i].id }_text"> ${ response_data.new_messages_to_display[i].message_text } </div>
+                              <text id="message_${ response_data.new_messages_to_display[i].id }_is_edited" class="text-muted"></text>
+                              <div style="font-size: 12px;" class="mt-2 text-end text-muted ">${ message_creation_date_string }</div>
+                          </div>
+                        </div>
+                    </div>`);
+
+                        }
+
+
+                    }
+
+                    }
+
+
+                    if(response_data.deleting == true) {
+
+                        isPaused = true;
+
+
+
+                        // for(i=0; i <= response_data.deleted_messages_id.length; i++) {
+
+
+                            $(`#message_${ response_data.deleted_messages_id[0].deleted_message_id }`).remove();
+                            $("#chatroom-messages-count").val($("#chatroom-messages-count").val() - 1);
+
+                            $.ajax({
+                              data: {"deleted_message_id": Number(response_data.deleted_messages_id[0].deleted_message_id), },
+                              dataType: 'json',
+                              url: "{% url 'empty-deleted-messages-table' %}",
+
+                              success: function(response_data) {
+
+
+                                    console.log('deleting message! 4');
+
+
+
+
+
+
+                              },
+
+                              errors: function(e) {
+                              alert(e);
+                            }});
+
+                         // }
+
+                        isPaused = false;
+
+                    }
+
+
+                    if(response_data.editing == true) {
+
+
+                        isPaused = true;
+
+                        // $(`#message_${ response_data.edited_messages[0].edited_message_id }_text`).text(response_data.edited_messages[0].edited_message_text);
+
+                        $(`#message_${ response_data.edited_messages[0].edited_message_id }_text`).html(response_data.edited_messages[0].edited_message_text);
+                        $(`#message_${ response_data.edited_messages[0].edited_message_id }_is_edited`).text("(ред.)");
+
+                        $.ajax({
+                              data: {"edited_message_id": Number(response_data.edited_messages[0].edited_message_id), },
+                              dataType: 'json',
+                              url: "{% url 'empty-edited-messages-table' %}",
+
+                              success: function(response_data) {
+
+
+                              },
+
+                              errors: function(e) {
+                              alert(e);
+                            }});
+
+
+                        isPaused = false;
+
+                    }
+
+
+              },
+
+              errors: function(e) {
+              alert(e);
+    	    }});
+
+            }, 1000);
+
+
+</script>
+
+{% endblock my_javascript_page_code %}
